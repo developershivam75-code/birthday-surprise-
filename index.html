@@ -3,121 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Birthday Celebration</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+    <title>Tic Tac Toe</title>
     <style>
-        /* Basic styles for modal */
-        body { font-family: Arial, sans-serif; }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 5px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            background-color: #fff;
+            cursor: pointer;
+            border: 1px solid #ccc;
+        }
         .modal {
             display: none;
             position: fixed;
-            z-index: 1;
-            left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
         }
         .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
+            background-color: white;
             padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            text-align: center;
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .celebrate {
-            color: #28a745;
-            font-size: 24px;
-            margin-top: 20px;
-        }
-        #emailButton {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
             border-radius: 5px;
-            cursor: pointer;
+        }
+        .show {
+            display: flex;
         }
     </style>
 </head>
 <body>
-    <h1>Happy Birthday, Aayush!</h1>
-    <button id="openModal">Celebrate</button>
+    <h1>Tic Tac Toe</h1>
+    <div class="board"></div>
 
-    <div id="myModal" class="modal">
+    <div class="modal" id="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <p class="celebrate">Wishing you a day filled with love, joy, and celebration!</p>
-            <button id="emailButton">Send Congratulations</button>
+            <h2>Congratulations! 🎉</h2>
+            <p>You have won! Happy Birthday! 🎂</p>
+            <button id="close-modal">Close</button>
         </div>
     </div>
 
     <script>
-        // Confetti Functionality
-        function sendConfetti() {
-            var duration = 5 * 1000; // Duration in milliseconds
-            var end = Date.now() + duration;
+        const board = document.querySelector('.board');
+        let cells = [];
+        let currentPlayer = 'X';
+        let gameActive = true;
 
-            var colors = ['#bb0000', '#ffffff', '#00bb00', '#0000bb'];
-            var randomColor = colors[Math.floor(Math.random() * colors.length)];
-
-            (function frame() {
-                confetti({
-                    particleCount: 5,
-                    startVelocity: 30,
-                    spread: 360,
-                    ticks: 60,
-                    gravity: 1,
-                    colors: [randomColor]
-                });
-                if (Date.now() < end) {
-                    requestAnimationFrame(frame);
-                }
-            }());
-        }
-
-        // Modal functionality
-        var modal = document.getElementById("myModal");
-        var btn = document.getElementById("openModal");
-        var span = document.getElementsByClassName("close")[0];
-
-        btn.onclick = function() {
-            modal.style.display = "block";
-            sendConfetti();
-        }
-
-        span.onclick = function() {
-            modal.style.display = "none";
-        }
-
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
+        function createBoard() {
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('click', cellClicked);
+                board.appendChild(cell);
+                cells.push(cell);
             }
         }
 
-        // Email functionality (pseudo implementation)
-        document.getElementById('emailButton').onclick = function() {
-            window.location.href = 'mailto:aayushgupta7513@gmail.com?subject=Happy Birthday Aayush!&body=Wishing you a wonderful birthday filled with love and joy!';
-        };
+        function cellClicked(e) {
+            const cell = e.target;
+            if (cell.textContent !== '' || !gameActive) return;
+
+            cell.textContent = currentPlayer;
+            checkWin();
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        }
+
+        function checkWin() {
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            for (const combination of winningCombinations) {
+                const [a, b, c] = combination;
+                if (cells[a].textContent && cells[a].textContent === cells[b].textContent && cells[a].textContent === cells[c].textContent) {
+                    gameActive = false;
+                    showModal();
+                    sendEmail();
+                }
+            }
+        }
+
+        function showModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.add('show');
+        }
+
+        function hideModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('show');
+        }
+
+        function sendEmail() {
+            const email = 'aayushgupta7513@gmail.com';
+            console.log(`Sending email to ${email}...`);
+            // You would replace this with actual email sending logic.
+        }
+
+        document.getElementById('close-modal').addEventListener('click', hideModal);
+
+        createBoard();
     </script>
 </body>
 </html>
