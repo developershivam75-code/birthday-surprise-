@@ -119,25 +119,29 @@
         }
 
         function sendEmail() {
-            if (emailSent) return;
+    if (emailSent) return;
 
-            // EMAILJS DATA - UPDATE THESE
-            const serviceID = 'service_c2ryvtd';
-            const templateID = 'template_bb61x18';
+    const serviceID = 'service_c2ryvtd';
+    const templateID = 'template_bb61x18';
 
-            const params = {
-                winner_name: winnerName,
-                message: `${winnerName} just won the Tic Tac Toe game! Time to send birthday wishes! 🎈`
-            };
+    const params = {
+        winner_name: winnerName,
+        to_email: 'aayushgupta7513@gmail.com', // Explicitly passing your email
+        message: `${winnerName} just won the Tic Tac Toe game! 🎈`
+    };
 
-            emailjs.send(serviceID, templateID, params)
-                .then(() => {
-                    emailSent = true;
-                    console.log("Birthday email sent for Chitra!");
-                }, (err) => {
-                    console.error("Email failed:", err);
-                });
+    emailjs.send(serviceID, templateID, params)
+        .then(() => {
+            emailSent = true;
+            console.log("Birthday email sent for Chitra!");
+        }, (err) => {
+            // This will tell us EXACTLY what is wrong in the console
+            alert("FAILED TO SEND EMAIL...\n\nError: " + err.text + "\nStatus: " + err.status);
+            console.error("Email failed:", err);
+                    });
         }
+        
+        
 
         document.getElementById('close-modal').addEventListener('click', () => {
             document.getElementById('modal').classList.remove('show');
