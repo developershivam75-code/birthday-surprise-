@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe</title>
+    <title>Tic Tac Toe - Birthday Edition</title>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+       (function(){
+          // REPLACE THIS WITH YOUR PUBLIC KEY FROM EMAILJS
+          emailjs.init("jWndomUCqjdHtRz4k");
+       })();
+    </script>
+
     <style>
         body {
             display: flex;
@@ -12,57 +21,51 @@
             justify-content: center;
             height: 100vh;
             background-color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+        h1 { color: #333; margin-bottom: 30px; }
         .board {
             display: grid;
             grid-template-columns: repeat(3, 100px);
-            grid-gap: 5px;
+            grid-gap: 8px;
         }
         .cell {
-            width: 100px;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2em;
-            background-color: #fff;
-            cursor: pointer;
-            border: 1px solid #ccc;
+            width: 100px; height: 100px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5em; font-weight: bold;
+            background-color: #fff; color: #333;
+            cursor: pointer; border: 2px solid #ddd;
+            border-radius: 8px; transition: background 0.3s;
         }
+        .cell:hover { background-color: #f9f9f9; }
         .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center;
+            z-index: 100;
         }
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
+        .modal-content { 
+            background-color: white; padding: 30px; border-radius: 15px; 
+            text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-        .show {
-            display: flex;
+        .show { display: flex; }
+        button { 
+            margin-top: 20px; padding: 12px 25px; cursor: pointer; 
+            background: #ff4757; color: white; border: none; 
+            border-radius: 25px; font-size: 1em; font-weight: bold;
         }
     </style>
 </head>
 <body>
+
     <h1>Tic Tac Toe</h1>
+
     <div class="board"></div>
 
     <div class="modal" id="modal">
         <div class="modal-content">
-            <h2>Congratulations! 🎉</h2>
-            <p>You have won! Happy Birthday! 🎂</p>
-            <button id="close-modal">Close</button>
+            <h2>🎉 Happy Birthday, Chitra! 🎉</h2>
+            <p>You've won the game and our hearts! 🎂</p>
+            <button id="close-modal">Play Again</button>
         </div>
     </div>
 
@@ -71,8 +74,14 @@
         let cells = [];
         let currentPlayer = 'X';
         let gameActive = true;
+        let emailSent = false;
+
+        // HARDCODED NAME
+        const winnerName = "Chitra";
 
         function createBoard() {
+            board.innerHTML = '';
+            cells = [];
             for (let i = 0; i < 9; i++) {
                 const cell = document.createElement('div');
                 cell.classList.add('cell');
@@ -88,42 +97,59 @@
 
             cell.textContent = currentPlayer;
             checkWin();
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            if(gameActive) currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
         }
 
         function checkWin() {
-            const winningCombinations = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8],
-                [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                [0, 4, 8], [2, 4, 6]
+            const wins = [
+                [0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]
             ];
-            for (const combination of winningCombinations) {
-                const [a, b, c] = combination;
+            for (const combo of wins) {
+                const [a, b, c] = combo;
                 if (cells[a].textContent && cells[a].textContent === cells[b].textContent && cells[a].textContent === cells[c].textContent) {
                     gameActive = false;
                     showModal();
-                    sendEmail();
+                    sendEmail(); 
                 }
             }
         }
 
         function showModal() {
-            const modal = document.getElementById('modal');
-            modal.classList.add('show');
-        }
-
-        function hideModal() {
-            const modal = document.getElementById('modal');
-            modal.classList.remove('show');
+            document.getElementById('modal').classList.add('show');
         }
 
         function sendEmail() {
-            const email = 'aayushgupta7513@gmail.com';
-            console.log(`Sending email to ${email}...`);
-            // You would replace this with actual email sending logic.
+            if (emailSent) return;
+
+            // EMAILJS DATA - UPDATE THESE
+            const serviceID = 'service_c2ryvtd';
+            const templateID = 'template_bb61x18';
+
+            const params = {
+                winner_name: winnerName,
+                message: `${winnerName} just won the Tic Tac Toe game! Time to send birthday wishes! 🎈`
+            };
+
+            emailjs.send(serviceID, templateID, params)
+                .then(() => {
+                    emailSent = true;
+                    console.log("Birthday email sent for Chitra!");
+                }, (err) => {
+                    console.error("Email failed:", err);
+                });
         }
 
-        document.getElementById('close-modal').addEventListener('click', hideModal);
+        document.getElementById('close-modal').addEventListener('click', () => {
+            document.getElementById('modal').classList.remove('show');
+            resetGame();
+        });
+
+        function resetGame() {
+            currentPlayer = 'X';
+            gameActive = true;
+            emailSent = false;
+            createBoard();
+        }
 
         createBoard();
     </script>
