@@ -3,124 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe - Happy Birthday!</title>
+    <title>Birthday Celebration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f0f0f0; }
-        h1 { margin-bottom: 20px; }
-        .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 5px; }
-        .cell { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; font-size: 2em; background-color: white; cursor: pointer; transition: background-color 0.3s; }
-        .cell:hover { background-color: #e0e0e0; }
-        .confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .hidden { display: none; }
+        /* Basic styles for modal */
+        body { font-family: Arial, sans-serif; }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            text-align: center;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .celebrate {
+            color: #28a745;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        #emailButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <h1>Happy Birthday, Aayush!</h1>
+    <button id="openModal">Celebrate</button>
 
-    <h1>Tic Tac Toe</h1>
-    <div class="board" id="board"></div>
-    <p id="message" class="hidden"></p>
-    <div id="confetti" class="confetti hidden"></div>
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p class="celebrate">Wishing you a day filled with love, joy, and celebration!</p>
+            <button id="emailButton">Send Congratulations</button>
+        </div>
+    </div>
 
     <script>
-        const board = document.getElementById('board');
-        const message = document.getElementById('message');
-        const confetti = document.getElementById('confetti');
-        let currentPlayer = 'X';
-        const cells = Array(9).fill(null);
-        const winningCombinations = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8],
-            [0, 3, 6], [1, 4, 7], [2, 5, 8],
-            [0, 4, 8], [2, 4, 6]
-        ];
+        // Confetti Functionality
+        function sendConfetti() {
+            var duration = 5 * 1000; // Duration in milliseconds
+            var end = Date.now() + duration;
 
-        function createCell(index) {
-            const cell = document.createElement('div');
-            cell.classList.add('cell');
-            cell.addEventListener('click', () => handleClick(index));
-            board.appendChild(cell);
-        }
+            var colors = ['#bb0000', '#ffffff', '#00bb00', '#0000bb'];
+            var randomColor = colors[Math.floor(Math.random() * colors.length)];
 
-        function handleClick(index) {
-            if (cells[index] || checkWin()) return;
-            cells[index] = currentPlayer;
-            render();
-            if (checkWin()) {
-                message.innerText = `${currentPlayer} wins! 🎉`;
-                message.classList.remove('hidden');
-                celebrate();
-            } else if (cells.every(cell => cell)) {
-                message.innerText = `It's a draw!`;
-                message.classList.remove('hidden');
-            }
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-        }
-
-        function render() {
-            Array.from(board.children).forEach((cell, index) => {
-                cell.innerText = cells[index] || '';
-            });
-        }
-
-        function checkWin() {
-            return winningCombinations.some(combination => {
-                const [a, b, c] = combination;
-                return cells[a] && cells[a] === cells[b] && cells[a] === cells[c];
-            });
-        }
-
-        function celebrate() {
-            confetti.classList.remove('hidden');
-            confetti.innerHTML = `<canvas id='canvas'></canvas>`;
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            let particles = [];
-
-            function createParticles(e) {
-                for (let i = 0; i < 100; i++) {
-                    particles.push({
-                        x: e.clientX,
-                        y: e.clientY,
-                        radius: Math.random() * 5 + 5,
-                        color: randomColor(),
-                        friction: Math.random() * 0.1 + 0.95,
-                        ax: Math.random() * 4 - 2,
-                        ay: Math.random() * -4 - 1
-                    });
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    startVelocity: 30,
+                    spread: 360,
+                    ticks: 60,
+                    gravity: 1,
+                    colors: [randomColor]
+                });
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
                 }
-            }
-
-            function randomColor() {
-                return `hsl(${Math.random() * 360}, 100%, 50%)`;
-            }
-
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for (let i = particles.length - 1; i >= 0; i--) {
-                    let p = particles[i];
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = p.color;
-                    ctx.fill();
-                    p.x += p.ax;
-                    p.y += p.ay;
-                    p.ax *= p.friction;
-                    p.ay *= p.friction;
-                    p.radius *= 0.95;
-                    if (p.radius < 0.3) particles.splice(i, 1);
-                }
-                requestAnimationFrame(animate);
-            }
-
-            window.addEventListener('click', createParticles);
-            animate();
+            }());
         }
 
-        for (let i = 0; i < 9; i++) {
-            createCell(i);
+        // Modal functionality
+        var modal = document.getElementById("myModal");
+        var btn = document.getElementById("openModal");
+        var span = document.getElementsByClassName("close")[0];
+
+        btn.onclick = function() {
+            modal.style.display = "block";
+            sendConfetti();
         }
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // Email functionality (pseudo implementation)
+        document.getElementById('emailButton').onclick = function() {
+            window.location.href = 'mailto:aayushgupta7513@gmail.com?subject=Happy Birthday Aayush!&body=Wishing you a wonderful birthday filled with love and joy!';
+        };
     </script>
 </body>
 </html>
