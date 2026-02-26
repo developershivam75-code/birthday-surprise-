@@ -21,11 +21,11 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: #f0f0f0;
+            background-color: #fff5f6; /* Soft pinkish background */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
         }
-        h1 { color: #333; margin-bottom: 30px; }
+        h1 { color: #d63031; margin-bottom: 30px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
         .board {
             display: grid;
             grid-template-columns: repeat(3, 100px);
@@ -36,25 +36,37 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 2.5em; font-weight: bold;
             background-color: #fff; color: #333;
-            cursor: pointer; border: 2px solid #ddd;
-            border-radius: 8px; transition: background 0.3s;
+            cursor: pointer; border: 2px solid #ffccd2;
+            border-radius: 12px; transition: all 0.2s ease;
         }
-        .cell:hover { background-color: #f9f9f9; }
+        .cell:hover { background-color: #fff0f3; transform: scale(1.02); }
+        
         .modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center;
+            background-color: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center;
             z-index: 100;
         }
         .modal-content { 
-            background-color: white; padding: 30px; border-radius: 15px; 
-            text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            position: relative; /* Keeps it above the confetti if needed */
+            background-color: white; padding: 40px; border-radius: 20px; 
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 80%;
         }
+        
+        /* New Wish Styling */
+        .warm-wish {
+            font-style: italic;
+            color: #636e72;
+            margin: 15px 0;
+            line-height: 1.5;
+            font-size: 1.1em;
+        }
+
         .show { display: flex; }
         button { 
-            margin-top: 20px; padding: 12px 25px; cursor: pointer; 
-            background: #ff4757; color: white; border: none; 
-            border-radius: 25px; font-size: 1em; font-weight: bold;
+            margin-top: 20px; padding: 12px 30px; cursor: pointer; 
+            background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; border: none; 
+            border-radius: 25px; font-size: 1.1em; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
         }
     </style>
 </head>
@@ -66,14 +78,25 @@
 
     <div class="modal" id="modal">
         <div class="modal-content">
-            <h2>🎉 Happy Birthday, Chitra! 🎉</h2>
+            <h2 style="color: #d63031;">🎉 Happy Birthday, Chitra! 🎉</h2>
+            
+            <p class="warm-wish">
+                "To a wonderful soul who brings so much light into our lives. <br>
+                May your year be as bright and winning as this game!" 🌟
+            </p>
+            
             <p>You've won the game and our hearts! 🎂</p>
             <button id="close-modal">Play Again</button>
         </div>
     </div>
 
+    <audio id="birthday-audio" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        </audio>
+
     <script>
         const board = document.querySelector('.board');
+        const bdayMusic = document.getElementById('birthday-audio');
         let cells = [];
         let currentPlayer = 'X';
         let gameActive = true;
@@ -102,44 +125,54 @@
         }
 
         function checkWin() {
-            const wins = [
-                [0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]
-            ];
+            const wins = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]];
             for (const combo of wins) {
                 const [a, b, c] = combo;
                 if (cells[a].textContent && cells[a].textContent === cells[b].textContent && cells[a].textContent === cells[c].textContent) {
                     gameActive = false;
-                    // Trigger the animation and show modal
-                    triggerBirthdayAnimation(); 
-                    showModal();
-                    sendEmail(); 
+                    celebrate();
                 }
             }
         }
 
-        // 2. New function for Ribbon/Confetti Animation
-        function triggerBirthdayAnimation() {
-            var duration = 5 * 1000;
-            var animationEnd = Date.now() + duration;
-            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 200 };
+        function celebrate() {
+            // 1. Play Music
+            bdayMusic.play().catch(e => console.log("Audio play blocked until interaction"));
+            
+            // 2. Confetti Ribbons
+            triggerConfetti();
+            
+            // 3. Show Modal
+            showModal();
+            
+            // 4. Send Email
+            sendEmail();
+        }
 
-            function randomInRange(min, max) {
-              return Math.random() * (max - min) + min;
-            }
+        function triggerConfetti() {
+            var end = Date.now() + (5 * 1000);
+            var colors = ['#ff4757', '#ffffff', '#ffbc00'];
 
-            var interval = setInterval(function() {
-              var timeLeft = animationEnd - Date.now();
+            (function frame() {
+              confetti({
+                particleCount: 3,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: colors
+              });
+              confetti({
+                particleCount: 3,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: colors
+              });
 
-              if (timeLeft <= 0) {
-                return clearInterval(interval);
+              if (Date.now() < end) {
+                requestAnimationFrame(frame);
               }
-
-              var particleCount = 50 * (timeLeft / duration);
-              // Confetti from left
-              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-              // Confetti from right
-              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
-            }, 250);
+            }());
         }
 
         function showModal() {
@@ -148,24 +181,17 @@
 
         function sendEmail() {
             if (emailSent) return;
-            const serviceID = 'service_c2ryvtd';
-            const templateID = 'template_bb61x18';
-            const params = {
+            emailjs.send('service_c2ryvtd', 'template_bb61x18', {
                 winner_name: winnerName,
                 to_email: 'aayushgupta7513@gmail.com',
-                message: `${winnerName} just won the Tic Tac Toe game! 🎈`
-            };
-
-            emailjs.send(serviceID, templateID, params)
-                .then(() => {
-                    emailSent = true;
-                }, (err) => {
-                    console.error("Email failed:", err);
-                });
+                message: `${winnerName} just won! 🎈`
+            }).then(() => emailSent = true);
         }
 
         document.getElementById('close-modal').addEventListener('click', () => {
             document.getElementById('modal').classList.remove('show');
+            bdayMusic.pause();
+            bdayMusic.currentTime = 0;
             resetGame();
         });
 
