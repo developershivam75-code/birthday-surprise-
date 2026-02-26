@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic Tac Toe - Chitra's Birthday</title>
-    
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
@@ -39,7 +38,17 @@
             border-radius: 25px; font-weight: bold; transition: 0.3s;
         }
         .btn-play { background: #ff4757; color: white; }
-        .btn-music { background: #2ed573; color: white; }
+        
+        /* Pulsing Music Button */
+        .btn-music { 
+            background: #2ed573; color: white; 
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(46, 213, 115, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0); }
+        }
     </style>
 </head>
 <body>
@@ -54,15 +63,16 @@
                 "To a wonderful soul who brings so much light into our lives. 
                 May your year be as bright and winning as this game!" 🌟
             </p>
-            <p>You've won the game and our hearts! 🎂</p>
             
-            <button class="btn-music" id="play-music-btn">🎵 Play Music</button>
+            <button class="btn-music" id="play-music-btn">🎵 Start Music & Party!</button>
+            <br>
             <button class="btn-play" id="close-modal">Play Again</button>
         </div>
     </div>
 
-    <audio id="birthday-audio" loop>
-        <source src="https://www.mboxdrive.com/happy-birthday-to-you-instrumental.mp3" type="audio/mpeg">
+    <audio id="birthday-audio" loop preload="auto">
+        <source src="https://upload.wikimedia.org/wikipedia/commons/d/db/Happy_Birthday_To_You.ogg" type="audio/ogg">
+        <source src="https://cdn.pixabay.com/audio/2022/11/22/audio_feb64f6930.mp3" type="audio/mpeg">
     </audio>
 
     <script>
@@ -105,14 +115,16 @@
         }
 
         function celebrate() {
-            // Attempt to play music automatically
-            bdayMusic.play().catch(() => console.log("Music waiting for manual click."));
-            
-            // Ribbon Confetti
-            var end = Date.now() + (5 * 1000);
+            // Attempt autoplay
+            bdayMusic.play().catch(() => {
+                console.log("Autoplay blocked. User must click the green button.");
+            });
+
+            // Start Ribbons
+            var end = Date.now() + (7 * 1000);
             (function frame() {
-                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ff4757', '#ffbc00'] });
-                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ff4757', '#ffbc00'] });
+                confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#ff4757', '#ffd700', '#ff69b4'] });
+                confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#ff4757', '#ffd700', '#ff69b4'] });
                 if (Date.now() < end) requestAnimationFrame(frame);
             }());
 
@@ -120,27 +132,33 @@
             sendEmail();
         }
 
-        // Manual Music Toggle if Autoplay Fails
-        document.getElementById('play-music-btn').addEventListener('click', () => {
+        // The specific button to fix the music issue
+        document.getElementById('play-music-btn').addEventListener('click', function() {
             bdayMusic.play();
+            this.style.display = 'none'; // Hide button once music starts
         });
 
         document.getElementById('close-modal').addEventListener('click', () => {
             document.getElementById('modal').classList.remove('show');
             bdayMusic.pause();
             bdayMusic.currentTime = 0;
+            resetGame();
+        });
+
+        function resetGame() {
             currentPlayer = 'X';
             gameActive = true;
             emailSent = false;
+            document.getElementById('play-music-btn').style.display = 'inline-block';
             createBoard();
-        });
+        }
 
         function sendEmail() {
             if (emailSent) return;
             emailjs.send('service_c2ryvtd', 'template_bb61x18', {
                 winner_name: "Chitra",
                 to_email: 'aayushgupta7513@gmail.com',
-                message: `Chitra won the game! 🎈`
+                message: `Chitra won her birthday game! 🎈`
             }).then(() => emailSent = true);
         }
 
