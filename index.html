@@ -3,96 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe - Birthday Edition</title>
+    <title>Tic Tac Toe - Chitra's Birthday</title>
     
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
-       (function(){
-          emailjs.init("jWndomUCqjdHtRz4k");
-       })();
+       (function(){ emailjs.init("jWndomUCqjdHtRz4k"); })();
     </script>
 
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #fff5f6; /* Soft pinkish background */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; background-color: #fff5f6; font-family: 'Segoe UI', sans-serif; margin: 0;
         }
-        h1 { color: #d63031; margin-bottom: 30px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
-        .board {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-gap: 8px;
-        }
+        h1 { color: #d63031; margin-bottom: 20px; }
+        .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 10px; }
         .cell {
-            width: 100px; height: 100px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 2.5em; font-weight: bold;
-            background-color: #fff; color: #333;
-            cursor: pointer; border: 2px solid #ffccd2;
-            border-radius: 12px; transition: all 0.2s ease;
+            width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;
+            font-size: 2.5em; font-weight: bold; background-color: #fff; color: #333;
+            cursor: pointer; border: 2px solid #ffccd2; border-radius: 12px; transition: 0.2s;
         }
-        .cell:hover { background-color: #fff0f3; transform: scale(1.02); }
-        
+        .cell:hover { background-color: #fff0f3; }
         .modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center;
-            z-index: 100;
+            background-color: rgba(0, 0, 0, 0.85); justify-content: center; align-items: center; z-index: 100;
         }
         .modal-content { 
-            background-color: white; padding: 40px; border-radius: 20px; 
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            max-width: 80%;
+            background: white; padding: 40px; border-radius: 20px; text-align: center; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 350px;
         }
-        
-        /* New Wish Styling */
-        .warm-wish {
-            font-style: italic;
-            color: #636e72;
-            margin: 15px 0;
-            line-height: 1.5;
-            font-size: 1.1em;
-        }
-
+        .warm-wish { font-style: italic; color: #636e72; margin: 20px 0; line-height: 1.6; }
         .show { display: flex; }
         button { 
-            margin-top: 20px; padding: 12px 30px; cursor: pointer; 
-            background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; border: none; 
-            border-radius: 25px; font-size: 1.1em; font-weight: bold;
-            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+            margin: 10px; padding: 12px 25px; cursor: pointer; border: none;
+            border-radius: 25px; font-weight: bold; transition: 0.3s;
         }
+        .btn-play { background: #ff4757; color: white; }
+        .btn-music { background: #2ed573; color: white; }
     </style>
 </head>
 <body>
 
     <h1>Tic Tac Toe</h1>
-
     <div class="board"></div>
 
     <div class="modal" id="modal">
         <div class="modal-content">
             <h2 style="color: #d63031;">🎉 Happy Birthday, Chitra! 🎉</h2>
-            
             <p class="warm-wish">
-                "To a wonderful soul who brings so much light into our lives. <br>
+                "To a wonderful soul who brings so much light into our lives. 
                 May your year be as bright and winning as this game!" 🌟
             </p>
-            
             <p>You've won the game and our hearts! 🎂</p>
-            <button id="close-modal">Play Again</button>
+            
+            <button class="btn-music" id="play-music-btn">🎵 Play Music</button>
+            <button class="btn-play" id="close-modal">Play Again</button>
         </div>
     </div>
 
     <audio id="birthday-audio" loop>
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-        </audio>
+        <source src="https://www.mboxdrive.com/happy-birthday-to-you-instrumental.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
         const board = document.querySelector('.board');
@@ -101,7 +72,6 @@
         let currentPlayer = 'X';
         let gameActive = true;
         let emailSent = false;
-        const winnerName = "Chitra";
 
         function createBoard() {
             board.innerHTML = '';
@@ -118,7 +88,6 @@
         function cellClicked(e) {
             const cell = e.target;
             if (cell.textContent !== '' || !gameActive) return;
-
             cell.textContent = currentPlayer;
             checkWin();
             if(gameActive) currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
@@ -136,70 +105,43 @@
         }
 
         function celebrate() {
-            // 1. Play Music
-            bdayMusic.play().catch(e => console.log("Audio play blocked until interaction"));
+            // Attempt to play music automatically
+            bdayMusic.play().catch(() => console.log("Music waiting for manual click."));
             
-            // 2. Confetti Ribbons
-            triggerConfetti();
-            
-            // 3. Show Modal
-            showModal();
-            
-            // 4. Send Email
+            // Ribbon Confetti
+            var end = Date.now() + (5 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ff4757', '#ffbc00'] });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ff4757', '#ffbc00'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+
+            document.getElementById('modal').classList.add('show');
             sendEmail();
         }
 
-        function triggerConfetti() {
-            var end = Date.now() + (5 * 1000);
-            var colors = ['#ff4757', '#ffffff', '#ffbc00'];
-
-            (function frame() {
-              confetti({
-                particleCount: 3,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0 },
-                colors: colors
-              });
-              confetti({
-                particleCount: 3,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1 },
-                colors: colors
-              });
-
-              if (Date.now() < end) {
-                requestAnimationFrame(frame);
-              }
-            }());
-        }
-
-        function showModal() {
-            document.getElementById('modal').classList.add('show');
-        }
-
-        function sendEmail() {
-            if (emailSent) return;
-            emailjs.send('service_c2ryvtd', 'template_bb61x18', {
-                winner_name: winnerName,
-                to_email: 'aayushgupta7513@gmail.com',
-                message: `${winnerName} just won! 🎈`
-            }).then(() => emailSent = true);
-        }
+        // Manual Music Toggle if Autoplay Fails
+        document.getElementById('play-music-btn').addEventListener('click', () => {
+            bdayMusic.play();
+        });
 
         document.getElementById('close-modal').addEventListener('click', () => {
             document.getElementById('modal').classList.remove('show');
             bdayMusic.pause();
             bdayMusic.currentTime = 0;
-            resetGame();
-        });
-
-        function resetGame() {
             currentPlayer = 'X';
             gameActive = true;
             emailSent = false;
             createBoard();
+        });
+
+        function sendEmail() {
+            if (emailSent) return;
+            emailjs.send('service_c2ryvtd', 'template_bb61x18', {
+                winner_name: "Chitra",
+                to_email: 'aayushgupta7513@gmail.com',
+                message: `Chitra won the game! 🎈`
+            }).then(() => emailSent = true);
         }
 
         createBoard();
