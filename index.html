@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic Tac Toe - Hayat's Birthday</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
@@ -14,39 +15,68 @@
         body {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100vh; background-color: #fff5f6; font-family: 'Segoe UI', sans-serif; margin: 0;
+            overflow: hidden;
         }
-        h1 { color: #d63031; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        
+        /* Start Overlay for Phone Audio Unlock */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000; cursor: pointer; text-align: center;
+        }
+
+        h1 { color: #d63031; margin-bottom: 30px; }
+        
         .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 10px; }
+        
         .cell {
             width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;
             font-size: 2.5em; font-weight: bold; background-color: #fff; color: #333;
-            cursor: pointer; border: 2px solid #ffccd2; border-radius: 12px; transition: 0.2s;
+            cursor: pointer; border: 2px solid #ffccd2; border-radius: 15px; transition: 0.2s;
         }
-        .cell:hover { background-color: #fff0f3; transform: scale(1.02); }
+        
+        .cell:hover { background-color: #fff0f3; transform: scale(1.05); }
+
         .modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(0, 0, 0, 0.85); justify-content: center; align-items: center; z-index: 100;
         }
+        
         .modal-content { 
-            background: white; padding: 40px; border-radius: 20px; text-align: center; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 350px;
+            background: white; padding: 40px; border-radius: 25px; text-align: center; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 85%;
         }
-        .warm-wish { font-style: italic; color: #636e72; margin: 20px 0; line-height: 1.6; }
+
+        .warm-wish { font-style: italic; color: #636e72; margin: 20px 0; line-height: 1.6; font-size: 1.1em; }
+
         .show { display: flex; }
+
         button { 
-            margin: 10px; padding: 12px 25px; cursor: pointer; border: none;
-            border-radius: 25px; font-weight: bold; transition: 0.3s;
+            margin: 10px; padding: 15px 30px; cursor: pointer; border: none;
+            border-radius: 30px; font-weight: bold; font-size: 1em; transition: 0.3s;
         }
+        
         .btn-play { background: #ff4757; color: white; }
-        .btn-music { background: #2ed573; color: white; animation: pulse 1.5s infinite; }
+        
+        .btn-music { 
+            background: #2ed573; color: white; 
+            animation: pulse 1.5s infinite;
+        }
+
         @keyframes pulse {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(46, 213, 115, 0); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(46, 213, 115, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0); }
         }
     </style>
 </head>
 <body>
+
+    <div id="start-overlay">
+        <h1 style="color: white; font-size: 2.5em;">🎂 Hayat's Game 🎈</h1>
+        <p style="font-size: 1.2em;">Tap to Start & Play Music!</p>
+    </div>
 
     <h1>Tic Tac Toe</h1>
     <div class="board"></div>
@@ -58,23 +88,35 @@
                 "To a wonderful soul who brings so much light into our lives. 
                 May your year be as bright and winning as this game!" 🌟
             </p>
-            <button class="btn-music" id="play-music-btn">🎵 Play Birthday Tune!</button>
+            <button class="btn-music" id="play-music-btn">🎵 Play Music</button>
             <br>
             <button class="btn-play" id="close-modal">Play Again</button>
         </div>
     </div>
 
-    <audio id="birthday-audio" loop>
-        <source src="https://cdn.pixabay.com/audio/2022/01/18/audio_82e6669894.mp3" type="audio/mpeg">
+    <audio id="birthday-audio" loop preload="auto">
+        <source src="https://upload.wikimedia.org/wikipedia/commons/d/db/Happy_Birthday_To_You.ogg" type="audio/ogg">
+        <source src="https://cdn.pixabay.com/audio/2022/11/22/audio_feb64f6930.mp3" type="audio/mpeg">
     </audio>
 
     <script>
         const board = document.querySelector('.board');
         const bdayMusic = document.getElementById('birthday-audio');
+        const startOverlay = document.getElementById('start-overlay');
         let cells = [];
         let currentPlayer = 'X';
         let gameActive = true;
         let emailSent = false;
+        const winnerName = "Hayat";
+
+        // Unlock audio for phone on first tap
+        startOverlay.addEventListener('click', function() {
+            bdayMusic.play().then(() => {
+                bdayMusic.pause();
+                bdayMusic.currentTime = 0;
+            }).catch(() => {});
+            this.style.display = 'none';
+        });
 
         function createBoard() {
             board.innerHTML = '';
@@ -108,18 +150,12 @@
         }
 
         function celebrate() {
-            // Force play on celebration
-            let playPromise = bdayMusic.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("Waiting for user to click the green button.");
-                });
-            }
+            bdayMusic.play().catch(() => {});
 
             var end = Date.now() + (7 * 1000);
             (function frame() {
-                confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#ff4757', '#ffd700'] });
-                confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#ff4757', '#ffd700'] });
+                confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#ff4757', '#ffd700', '#ff69b4'] });
+                confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#ff4757', '#ffd700', '#ff69b4'] });
                 if (Date.now() < end) requestAnimationFrame(frame);
             }());
 
@@ -127,11 +163,7 @@
             sendEmail();
         }
 
-        document.getElementById('play-music-btn').addEventListener('click', function() {
-            bdayMusic.play();
-            this.innerText = "🎶 Playing...";
-            this.classList.remove('btn-music'); // Stop pulse
-        });
+        document.getElementById('play-music-btn').addEventListener('click', () => bdayMusic.play());
 
         document.getElementById('close-modal').addEventListener('click', () => {
             document.getElementById('modal').classList.remove('show');
@@ -144,17 +176,15 @@
             currentPlayer = 'X';
             gameActive = true;
             emailSent = false;
-            document.getElementById('play-music-btn').innerText = "🎵 Play Birthday Tune!";
-            document.getElementById('play-music-btn').classList.add('btn-music');
             createBoard();
         }
 
         function sendEmail() {
             if (emailSent) return;
             emailjs.send('service_c2ryvtd', 'template_bb61x18', {
-                winner_name: "Hayat",
+                winner_name: winnerName,
                 to_email: 'aayushgupta7513@gmail.com',
-                message: `Hayat won her birthday game! 🎈`
+                message: `${winnerName} won the birthday game! 🎈`
             }).then(() => emailSent = true);
         }
 
