@@ -12,13 +12,15 @@
     </script>
 
     <style>
+        :root {
+            --bg-color: #fff5f6;
+        }
         body {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; background-color: #fff5f6; font-family: 'Segoe UI', sans-serif; margin: 0;
-            overflow: hidden;
+            height: 100vh; background-color: var(--bg-color); font-family: 'Segoe UI', sans-serif; margin: 0;
+            overflow: hidden; transition: background-color 0.5s ease;
         }
         
-        /* Start Overlay for Phone Audio Unlock */
         #start-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; 
@@ -27,55 +29,54 @@
         }
 
         h1 { color: #d63031; margin-bottom: 30px; }
-        
         .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 10px; }
-        
         .cell {
             width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;
             font-size: 2.5em; font-weight: bold; background-color: #fff; color: #333;
             cursor: pointer; border: 2px solid #ffccd2; border-radius: 15px; transition: 0.2s;
         }
-        
         .cell:hover { background-color: #fff0f3; transform: scale(1.05); }
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(0, 0, 0, 0.85); justify-content: center; align-items: center; z-index: 100;
         }
-        
         .modal-content { 
             background: white; padding: 40px; border-radius: 25px; text-align: center; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 85%;
         }
-
-        .warm-wish { font-style: italic; color: #636e72; margin: 20px 0; line-height: 1.6; font-size: 1.1em; }
-
+        .warm-wish { font-style: italic; color: #636e72; margin: 20px 0; line-height: 1.6; }
         .show { display: flex; }
 
         button { 
             margin: 10px; padding: 15px 30px; cursor: pointer; border: none;
             border-radius: 30px; font-weight: bold; font-size: 1em; transition: 0.3s;
         }
-        
         .btn-play { background: #ff4757; color: white; }
-        
-        .btn-music { 
-            background: #2ed573; color: white; 
-            animation: pulse 1.5s infinite;
-        }
+        .btn-music { background: #2ed573; color: white; animation: pulse 1.5s infinite; }
 
         @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7); }
+            0% { transform: scale(1); }
             70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(46, 213, 115, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0); }
+            100% { transform: scale(1); }
         }
+
+        /* Color Party Animation */
+        @keyframes disco {
+            0% { background-color: #fff5f6; }
+            25% { background-color: #fff0f3; }
+            50% { background-color: #fef5e7; }
+            75% { background-color: #ebf5fb; }
+            100% { background-color: #fff5f6; }
+        }
+        .disco-mode { animation: disco 2s infinite; }
     </style>
 </head>
 <body>
 
     <div id="start-overlay">
-        <h1 style="color: white; font-size: 2.5em;">🎂 Hayat's Game 🎈</h1>
-        <p style="font-size: 1.2em;">Tap to Start & Play Music!</p>
+        <h1 style="color: white; font-size: 2.2em;">🎂 Hayat's B'day Game 🎈</h1>
+        <p style="font-size: 1.2em;">Tap anywhere to Start!</p>
     </div>
 
     <h1>Tic Tac Toe</h1>
@@ -88,20 +89,14 @@
                 "To a wonderful soul who brings so much light into our lives. 
                 May your year be as bright and winning as this game!" 🌟
             </p>
-            <button class="btn-music" id="play-music-btn">🎵 Play Music</button>
+            <button class="btn-music" id="play-music-btn">🎵 Play Birthday Melody</button>
             <br>
             <button class="btn-play" id="close-modal">Play Again</button>
         </div>
     </div>
 
-    <audio id="birthday-audio" loop preload="auto">
-        <source src="https://upload.wikimedia.org/wikipedia/commons/d/db/Happy_Birthday_To_You.ogg" type="audio/ogg">
-        <source src="https://cdn.pixabay.com/audio/2022/11/22/audio_feb64f6930.mp3" type="audio/mpeg">
-    </audio>
-
     <script>
         const board = document.querySelector('.board');
-        const bdayMusic = document.getElementById('birthday-audio');
         const startOverlay = document.getElementById('start-overlay');
         let cells = [];
         let currentPlayer = 'X';
@@ -109,12 +104,39 @@
         let emailSent = false;
         const winnerName = "Hayat";
 
-        // Unlock audio for phone on first tap
+        // --- 🎵 BUILT-IN MUSIC ENGINE (No files needed) ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playNote(freq, start, duration) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle'; // Better sound for mobile
+            osc.frequency.setValueAtTime(freq, start);
+            gain.gain.setValueAtTime(0.2, start);
+            gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(start);
+            osc.stop(start + duration);
+        }
+
+        function playHappyBirthday() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const tempo = 0.5;
+            // Notes: Hap-py Birth-day To You
+            playNote(262, now, tempo);          
+            playNote(262, now + 0.4, tempo/2);   
+            playNote(294, now + 0.6, tempo);    
+            playNote(262, now + 1.1, tempo);    
+            playNote(349, now + 1.6, tempo);    
+            playNote(330, now + 2.1, tempo * 2); 
+        }
+
+        // Tap to unlock audio
         startOverlay.addEventListener('click', function() {
-            bdayMusic.play().then(() => {
-                bdayMusic.pause();
-                bdayMusic.currentTime = 0;
-            }).catch(() => {});
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             this.style.display = 'none';
         });
 
@@ -150,12 +172,13 @@
         }
 
         function celebrate() {
-            bdayMusic.play().catch(() => {});
+            playHappyBirthday();
+            document.body.classList.add('disco-mode');
 
             var end = Date.now() + (7 * 1000);
             (function frame() {
-                confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#ff4757', '#ffd700', '#ff69b4'] });
-                confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#ff4757', '#ffd700', '#ff69b4'] });
+                confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#ff4757', '#ffd700'] });
+                confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#ff4757', '#ffd700'] });
                 if (Date.now() < end) requestAnimationFrame(frame);
             }());
 
@@ -163,12 +186,11 @@
             sendEmail();
         }
 
-        document.getElementById('play-music-btn').addEventListener('click', () => bdayMusic.play());
+        document.getElementById('play-music-btn').addEventListener('click', () => playHappyBirthday());
 
         document.getElementById('close-modal').addEventListener('click', () => {
             document.getElementById('modal').classList.remove('show');
-            bdayMusic.pause();
-            bdayMusic.currentTime = 0;
+            document.body.classList.remove('disco-mode');
             resetGame();
         });
 
