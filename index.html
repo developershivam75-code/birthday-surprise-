@@ -6,9 +6,13 @@
     <title>Tic Tac Toe - Hayat's Birthday</title>
     
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
-       (function(){ emailjs.init("jWndomUCqjdHtRz4k"); })();
+       (function(){ 
+          // YOUR PUBLIC KEY
+          emailjs.init("jWndomUCqjdHtRz4k"); 
+       })();
     </script>
 
     <style>
@@ -18,7 +22,7 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100vh; background-color: var(--bg-color); font-family: 'Segoe UI', sans-serif; margin: 0;
             overflow: hidden; transition: background-color 0.5s ease;
-            touch-action: none; /* Prevents default browser pull-to-refresh so we can custom handle it */
+            touch-action: none; 
         }
         
         #start-overlay {
@@ -28,12 +32,10 @@
             z-index: 1000; cursor: pointer; text-align: center;
         }
 
-        /* Refresh Icon Styling */
         .refresh-hint {
             position: absolute; top: 20px; right: 20px; font-size: 1.5rem;
-            cursor: pointer; opacity: 0.6; transition: 0.3s;
+            cursor: pointer; opacity: 0.6; transition: 0.3s; z-index: 10;
         }
-        .refresh-hint:hover { opacity: 1; transform: rotate(90deg); }
 
         h1 { color: #d63031; margin-bottom: 30px; }
         .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 10px; }
@@ -42,7 +44,7 @@
             font-size: 2.5em; font-weight: bold; background-color: #fff; color: #333;
             cursor: pointer; border: 2px solid #ffccd2; border-radius: 15px; transition: 0.2s;
         }
-        .cell:hover { background-color: #fff0f3; transform: scale(1.05); }
+        .cell:hover { background-color: #fff0f3; }
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -57,7 +59,7 @@
 
         button { 
             margin: 10px; padding: 15px 30px; cursor: pointer; border: none;
-            border-radius: 30px; font-weight: bold; font-size: 1em; transition: 0.3s;
+            border-radius: 30px; font-weight: bold; font-size: 1em;
         }
         .btn-play { background: #ff4757; color: white; }
         .btn-music { background: #2ed573; color: white; animation: pulse 1.5s infinite; }
@@ -68,6 +70,7 @@
             100% { background-color: #fff5f6; }
         }
         .disco-mode { animation: disco 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -98,6 +101,7 @@
         let cells = [];
         let currentPlayer = 'X';
         let gameActive = true;
+        let emailSent = false;
         const winnerName = "Hayat";
 
         // --- 🎵 MUSIC ENGINE ---
@@ -124,14 +128,12 @@
             playNote(262, now + 1.4, 0.6); playNote(349, now + 2.1, 0.6); playNote(330, now + 2.8, 1.0);
         }
 
-        // --- 📱 PULL TO REFRESH LOGIC ---
+        // --- 📱 PULL TO REFRESH ---
         let touchStart = 0;
         window.addEventListener('touchstart', e => { touchStart = e.touches[0].pageY; }, false);
         window.addEventListener('touchend', e => {
             const touchEnd = e.changedTouches[0].pageY;
-            if (touchStart < touchEnd - 100) { // If user pulled down more than 100px
-                location.reload(); 
-            }
+            if (touchStart < touchEnd - 100) { location.reload(); }
         }, false);
 
         startOverlay.addEventListener('click', function() {
@@ -175,6 +177,27 @@
             document.body.classList.add('disco-mode');
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             document.getElementById('modal').classList.add('show');
+            sendEmail(); // 2. TRIGGER EMAIL ON WIN
+        }
+
+        // 3. EMAIL SENDING FUNCTION
+        function sendEmail() {
+            if (emailSent) return;
+            
+            const serviceID = 'service_c2ryvtd';
+            const templateID = 'template_bb61x18';
+
+            emailjs.send(serviceID, templateID, {
+                winner_name: winnerName,
+                to_email: 'aayushgupta7513@gmail.com',
+                message: `${winnerName} just won her birthday game! 🎈`
+            })
+            .then(() => {
+                emailSent = true;
+                console.log("Email notification sent!");
+            }, (err) => {
+                console.log("Email failed:", err);
+            });
         }
 
         document.getElementById('play-music-btn').addEventListener('click', () => playHappyBirthday());
