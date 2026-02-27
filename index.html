@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Tic Tac Toe - Hayat's Birthday</title>
     
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -12,13 +12,13 @@
     </script>
 
     <style>
-        :root {
-            --bg-color: #fff5f6;
-        }
+        :root { --bg-color: #fff5f6; }
+        
         body {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100vh; background-color: var(--bg-color); font-family: 'Segoe UI', sans-serif; margin: 0;
             overflow: hidden; transition: background-color 0.5s ease;
+            touch-action: none; /* Prevents default browser pull-to-refresh so we can custom handle it */
         }
         
         #start-overlay {
@@ -27,6 +27,13 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 1000; cursor: pointer; text-align: center;
         }
+
+        /* Refresh Icon Styling */
+        .refresh-hint {
+            position: absolute; top: 20px; right: 20px; font-size: 1.5rem;
+            cursor: pointer; opacity: 0.6; transition: 0.3s;
+        }
+        .refresh-hint:hover { opacity: 1; transform: rotate(90deg); }
 
         h1 { color: #d63031; margin-bottom: 30px; }
         .board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 10px; }
@@ -55,18 +62,9 @@
         .btn-play { background: #ff4757; color: white; }
         .btn-music { background: #2ed573; color: white; animation: pulse 1.5s infinite; }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(46, 213, 115, 0); }
-            100% { transform: scale(1); }
-        }
-
-        /* Color Party Animation */
         @keyframes disco {
             0% { background-color: #fff5f6; }
-            25% { background-color: #fff0f3; }
             50% { background-color: #fef5e7; }
-            75% { background-color: #ebf5fb; }
             100% { background-color: #fff5f6; }
         }
         .disco-mode { animation: disco 2s infinite; }
@@ -76,8 +74,10 @@
 
     <div id="start-overlay">
         <h1 style="color: white; font-size: 2.2em;">🎂 Hayat's B'day Game 🎈</h1>
-        <p style="font-size: 1.2em;">Tap anywhere to Start!</p>
+        <p style="font-size: 1.1em;">Tap anywhere to Start!</p>
     </div>
+
+    <div class="refresh-hint" onclick="location.reload()">🔄</div>
 
     <h1>Tic Tac Toe</h1>
     <div class="board"></div>
@@ -85,11 +85,8 @@
     <div class="modal" id="modal">
         <div class="modal-content">
             <h2 style="color: #d63031;">🎉 Happy Birthday, Hayat! 🎉</h2>
-            <p class="warm-wish">
-                "To a wonderful soul who brings so much light into our lives. 
-                May your year be as bright and winning as this game!" 🌟
-            </p>
-            <button class="btn-music" id="play-music-btn">🎵 Play Birthday Melody</button>
+            <p class="warm-wish">"To a wonderful soul who brings so much light into our lives." 🌟</p>
+            <button class="btn-music" id="play-music-btn">🎵 Play Melody</button>
             <br>
             <button class="btn-play" id="close-modal">Play Again</button>
         </div>
@@ -101,17 +98,16 @@
         let cells = [];
         let currentPlayer = 'X';
         let gameActive = true;
-        let emailSent = false;
         const winnerName = "Hayat";
 
-        // --- 🎵 BUILT-IN MUSIC ENGINE (No files needed) ---
+        // --- 🎵 MUSIC ENGINE ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
 
         function playNote(freq, start, duration) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'triangle'; // Better sound for mobile
+            osc.type = 'triangle';
             osc.frequency.setValueAtTime(freq, start);
             gain.gain.setValueAtTime(0.2, start);
             gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
@@ -124,17 +120,20 @@
         function playHappyBirthday() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const now = audioCtx.currentTime;
-            const tempo = 0.5;
-            // Notes: Hap-py Birth-day To You
-            playNote(262, now, tempo);          
-            playNote(262, now + 0.4, tempo/2);   
-            playNote(294, now + 0.6, tempo);    
-            playNote(262, now + 1.1, tempo);    
-            playNote(349, now + 1.6, tempo);    
-            playNote(330, now + 2.1, tempo * 2); 
+            playNote(262, now, 0.4); playNote(262, now + 0.5, 0.2); playNote(294, now + 0.7, 0.6);
+            playNote(262, now + 1.4, 0.6); playNote(349, now + 2.1, 0.6); playNote(330, now + 2.8, 1.0);
         }
 
-        // Tap to unlock audio
+        // --- 📱 PULL TO REFRESH LOGIC ---
+        let touchStart = 0;
+        window.addEventListener('touchstart', e => { touchStart = e.touches[0].pageY; }, false);
+        window.addEventListener('touchend', e => {
+            const touchEnd = e.changedTouches[0].pageY;
+            if (touchStart < touchEnd - 100) { // If user pulled down more than 100px
+                location.reload(); 
+            }
+        }, false);
+
         startOverlay.addEventListener('click', function() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             this.style.display = 'none';
@@ -174,41 +173,12 @@
         function celebrate() {
             playHappyBirthday();
             document.body.classList.add('disco-mode');
-
-            var end = Date.now() + (7 * 1000);
-            (function frame() {
-                confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#ff4757', '#ffd700'] });
-                confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#ff4757', '#ffd700'] });
-                if (Date.now() < end) requestAnimationFrame(frame);
-            }());
-
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             document.getElementById('modal').classList.add('show');
-            sendEmail();
         }
 
         document.getElementById('play-music-btn').addEventListener('click', () => playHappyBirthday());
-
-        document.getElementById('close-modal').addEventListener('click', () => {
-            document.getElementById('modal').classList.remove('show');
-            document.body.classList.remove('disco-mode');
-            resetGame();
-        });
-
-        function resetGame() {
-            currentPlayer = 'X';
-            gameActive = true;
-            emailSent = false;
-            createBoard();
-        }
-
-        function sendEmail() {
-            if (emailSent) return;
-            emailjs.send('service_c2ryvtd', 'template_bb61x18', {
-                winner_name: winnerName,
-                to_email: 'aayushgupta7513@gmail.com',
-                message: `${winnerName} won the birthday game! 🎈`
-            }).then(() => emailSent = true);
-        }
+        document.getElementById('close-modal').addEventListener('click', () => location.reload());
 
         createBoard();
     </script>
